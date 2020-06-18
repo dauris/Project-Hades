@@ -3,34 +3,47 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Athena
 {
     class Program
     {
+        static readonly List<string> ResponseOptions = new List<string>()
+        {
+            "Y (Yes)",
+            "N (No)"
+        };
+
+        static readonly List<string> TaskListing = new List<string>()
+        {
+            "Search File and Provide Response",
+            "Search and Find Data,",
+            "Find Data"
+        };
+
         static void Main(string[] args)
         {
-            var taskListing = new List<string>()
-            {
-                "Search File and Provide Response",
-                "Search and Find Data,",
-                "Find Data"
-            }; 
+            
+             
             Console.WriteLine("What do you wish to do?");
-            Console.WriteLine($"{taskListing.IndexOf(taskListing[0])} : {taskListing[0]}");
-            Console.WriteLine($"{taskListing.IndexOf(taskListing[1])} : {taskListing[1]}");
-            Console.WriteLine($"{taskListing.IndexOf(taskListing[2])} : {taskListing[2]}");
+            Console.WriteLine($"{TaskListing.IndexOf(TaskListing[0])} : {TaskListing[0]}");
+            Console.WriteLine($"{TaskListing.IndexOf(TaskListing[1])} : {TaskListing[1]}");
+            Console.WriteLine($"{TaskListing.IndexOf(TaskListing[2])} : {TaskListing[2]}");
 
             var userTaskResponse = Console.ReadLine();
 
             if  (!string.IsNullOrEmpty(userTaskResponse))
             {
                 var userSelectedResponse = Convert.ToInt32(userTaskResponse);
+                //TODO: create a help option to provide 
+
+                //TODO: update and convert into a switch statement
                 if (userSelectedResponse == 0)
                 {
                     var file = string.Empty;
-                    Console.Write("plese provide a file for review (please provide directory and extension)");
+                    Console.Write("please provide a file for review (please provide directory, file or extension)");
                     file = Console.ReadLine();
                     SearchForFileData(file);
                 } else if (userSelectedResponse == 1)
@@ -83,23 +96,26 @@ namespace Athena
         private static void SearchForFileData(string file)
         {
             //TODO: Create a method that will write to the screen (hopefully reduce the amount of time console)
+            
             var useDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (!file.Contains(@"C:\"))
             {
                 
                 var temps = Directory.GetFiles(useDirectory);
-                if (temps.Contains(file))
+                if (Array.Exists(temps, element => element.Contains(file)))
                 {
+                    foreach (var recordLine in File.ReadLines($@"{useDirectory}/checkRecord.txt", Encoding.UTF8))
+                    {
+                        ScreenWriter(recordLine, TaskListing,true, false,false);
+                    }
                     
                 }
                 else
                 {
-                    Console.WriteLine("File not found do ");
-                    Console.WriteLine("Y (Yes)");
-                    Console.WriteLine("N (No)");
+                    ScreenWriter("Requested File not found, do wish to review alternative options", ResponseOptions, true, true);
                     var userActionResponse = Console.ReadLine();
 
-                    if (userActionResponse.ToUpperInvariant() == "Y" || userActionResponse =="Yes")
+                    if (userActionResponse != null && (userActionResponse.ToUpperInvariant() == "Y" || userActionResponse =="Yes"))
                     {
                         foreach (var temp in temps)
                         {
@@ -109,15 +125,14 @@ namespace Athena
                     }
                     else
                     {
-                        
-                        return;
+                        ScreenWriter("Exiting function, thank you sir", ResponseOptions, true, false, true);
                     }
                     
                 }
                 
                 
 
-                Console.ReadLine();
+                
             }
             else
             {
@@ -125,7 +140,37 @@ namespace Athena
 
 
             }
-            //throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message">Message to share wit the user</param>
+        /// <param name="responseMessages">User list response</param>
+        /// <param name="newline">boolean: to display content with a new line</param>
+        /// <param name="responses">boolean:  after message is written are responses need</param>
+        /// <param name="closeApp">boolean: close application after message</param>
+        private static void ScreenWriter(string message, List<string> responseMessages, bool newline = true, bool responses = false, bool closeApp = false)
+        {
+            if (newline)
+            {
+                Console.WriteLine(message);
+            }
+            else
+            {
+                Console.Write(message);
+            }
+
+            if (closeApp)
+            {
+                Console.ReadKey();
+                return;
+            }
+            if (!responses) return;
+            foreach (var responseMessage in responseMessages)
+            {
+                Console.WriteLine(responseMessage);
+            }
         }
     }
 }
